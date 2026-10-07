@@ -1,0 +1,14 @@
+Checks: >
+  -*,
+  clang-analyzer-*,
+  -clang-analyzer-optin.performance.Padding,
+  bugprone-dangling-handle,
+  bugprone-use-after-move,
+  cppcoreguidelines-init-variables,
+  cppcoreguidelines-narrowing-conversions,
+  cppcoreguidelines-virtual-class-destructor
+# 历史代码里仍有一批 use-after-move / 静态分析误报；先保持检查可见，不以之阻断 CI。
+# 新代码应继续清掉这些告警，再逐步把关键检查加回 WarningsAsErrors。
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*[\\/](include[\\/]ysDui|src)[\\/].*'
+FormatStyle: none

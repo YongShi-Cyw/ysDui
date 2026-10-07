@@ -1,0 +1,79 @@
+name: ysDui Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Windows static package
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require project license
+        shell: pwsh
+        run: |
+          if (-not (Test-Path LICENSE -PathType Leaf)) {
+            Write-Error "Release blocked: root LICENSE is missing. Choose and add the project license before publishing."
+            exit 1
+          }
+      - name: Configure
+        run: >-
+          cmake -S . -B build-release -A x64
+          -DYSDUI_BUILD_WIN32_BACKEND=ON
+          -DYSDUI_BUILD_EXAMPLES=OFF
+          -DYSDUI_BUILD_RESOURCE_MODULE=ON
+          -DYSDUI_ENABLE_RESOURCE_ENCRYPTION=OFF
+          -DYSDUI_BUILD_PERFORMANCE_BASELINE=OFF
+          -DYSDUI_WARNINGS_AS_ERRORS=ON
+      - name: Build
+        run: cmake --build build-release --config Release --parallel
+      - name: Test
+        run: ctest --test-dir build-release -C Release --output-on-failure
+      - name: Install package
+        shell: pwsh
+        run: |
+          $prefix = Join-Path $env:RUNNER_TEMP "ysDui-install"
+          cmake --install build-release --config Release --prefix $prefix
+          if (-not (Test-Path (Join-Path $prefix "lib/cmake/ysDui/ysDuiConfig.cmake"))) {
+            throw "Installed CMake package was not generated."
+          }
+          "YSDUI_RELEASE_PREFIX=$prefix" >> $env:GITHUB_ENV
+      - name: Verify independent consumer
+        shell: pwsh
+        run: |
+          cmake -S tests/install_consumer -B $env:RUNNER_TEMP/ysDui-release-consumer -A x64 `
+            -DCMAKE_PREFIX_PATH=$env:YSDUI_RELEASE_PREFIX `
+            -DYSDUI_INSTALL_HAS_WIN32=ON `
+            -DYSDUI_INSTALL_HAS_RESOURCE=ON
+          cmake --build $env:RUNNER_TEMP/ysDui-release-consumer --config Release --parallel
+          ctest --test-dir $env:RUNNER_TEMP/ysDui-release-consumer -C Release --output-on-failure
+      - name: Archive and hash
+        shell: pwsh
+        run: |
+          $version = if ($env:GITHUB_REF_NAME) { $env:GITHUB_REF_NAME } else { "manual" }
+          $archive = Join-Path $env:RUNNER_TEMP "ysDui-$version-windows-x64.zip"
+          Compress-Archive -Path (Join-Path $env:YSDUI_RELEASE_PREFIX '*') -DestinationPath $archive
+          $hash = (Get-FileHash $archive -Algorithm SHA256).Hash
+          "$hash  $(Split-Path $archive -Leaf)" | Set-Content "$archive.sha256"
+          "YSDUI_RELEASE_ARCHIVE=$archive" >> $env:GITHUB_ENV
+          "YSDUI_RELEASE_HASH=$archive.sha256" >> $env:GITHUB_ENV
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ysDui-windows-x64-${{ github.ref_name }}
+          path: |
+            ${{ env.YSDUI_RELEASE_ARCHIVE }}
+            ${{ env.YSDUI_RELEASE_HASH }}
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.YSDUI_RELEASE_ARCHIVE }}
+            ${{ env.YSDUI_RELEASE_HASH }}

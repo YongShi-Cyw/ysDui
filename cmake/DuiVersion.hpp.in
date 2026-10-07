@@ -1,0 +1,22 @@
+/**
+ * 文件名：DuiVersion.hpp
+ * 开发者：青蓝
+ * 开发时间：2026-07-30
+ * 用途：公开由 CMake 项目版本生成的 ysDui 版本常量。
+ */
+#pragma once
+
+#include <string_view>
+
+namespace ysDui {
+
+/** ysDui 主版本号；主版本变化允许破坏源兼容。 */
+inline constexpr int VersionMajor = @PROJECT_VERSION_MAJOR@;
+/** ysDui 次版本号；2.x 内新增能力必须保持源兼容。 */
+inline constexpr int VersionMinor = @PROJECT_VERSION_MINOR@;
+/** ysDui 修订版本号。 */
+inline constexpr int VersionPatch = @PROJECT_VERSION_PATCH@;
+/** 完整的语义版本字符串。 */
+inline constexpr std::string_view Version = "@PROJECT_VERSION@";
+
+} // namespace ysDui

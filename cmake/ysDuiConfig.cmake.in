@@ -1,0 +1,27 @@
+# ysDuiConfig.cmake.in
+# 开发者：青蓝
+# 开发时间：2026-07-29
+# 用途：加载已安装的 ysDui 静态库目标并校验请求组件。
+
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+if(@YSDUI_PACKAGE_HAS_RESOURCE@)
+  find_dependency(zlib-ng CONFIG)
+  find_dependency(minizip-ng CONFIG)
+  if(@YSDUI_PACKAGE_RESOURCE_ENCRYPTION@)
+    find_dependency(@YSDUI_SODIUM_PACKAGE@ CONFIG)
+  endif()
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/ysDuiTargets.cmake")
+
+foreach(component IN ITEMS core render ui controls workbook_text platform_win32 resource)
+  if(TARGET ysDui::${component})
+    set(ysDui_${component}_FOUND TRUE)
+  else()
+    set(ysDui_${component}_FOUND FALSE)
+  endif()
+endforeach()
+
+check_required_components(ysDui)

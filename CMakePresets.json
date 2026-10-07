@@ -1,0 +1,160 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "portable-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YSDUI_BUILD_WIN32_BACKEND": "OFF",
+        "YSDUI_BUILD_EXAMPLES": "OFF",
+        "YSDUI_BUILD_RESOURCE_MODULE": "OFF",
+        "YSDUI_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "portable-gcc",
+      "displayName": "Portable GCC",
+      "inherits": "portable-base",
+      "environment": {
+        "CC": "gcc",
+        "CXX": "g++"
+      }
+    },
+    {
+      "name": "portable-clang",
+      "displayName": "Portable Clang",
+      "inherits": "portable-base",
+      "environment": {
+        "CC": "clang",
+        "CXX": "clang++"
+      }
+    },
+    {
+      "name": "windows-msvc",
+      "displayName": "Windows MSVC",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "YSDUI_BUILD_WIN32_BACKEND": "ON",
+        "YSDUI_BUILD_EXAMPLES": "ON",
+        "YSDUI_BUILD_RESOURCE_MODULE": "OFF",
+        "YSDUI_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "resource",
+      "displayName": "Resource Module",
+      "inherits": "portable-gcc",
+      "cacheVariables": {
+        "YSDUI_BUILD_RESOURCE_MODULE": "ON",
+        "YSDUI_ENABLE_RESOURCE_ENCRYPTION": "OFF",
+        "YSDUI_BUILD_PERFORMANCE_BASELINE": "OFF"
+      }
+    },
+    {
+      "name": "portable-clang-sanitizers",
+      "displayName": "Portable Clang ASan UBSan",
+      "inherits": "portable-clang",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YSDUI_ENABLE_ASAN": "ON",
+        "YSDUI_ENABLE_UBSAN": "ON",
+        "YSDUI_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-asan",
+      "displayName": "Windows MSVC ASan",
+      "inherits": "windows-msvc",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "YSDUI_BUILD_EXAMPLES": "OFF",
+        "YSDUI_ENABLE_ASAN": "ON",
+        "YSDUI_WARNINGS_AS_ERRORS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "portable-gcc",
+      "configurePreset": "portable-gcc"
+    },
+    {
+      "name": "portable-clang",
+      "configurePreset": "portable-clang"
+    },
+    {
+      "name": "windows-msvc",
+      "configurePreset": "windows-msvc",
+      "configuration": "Release"
+    },
+    {
+      "name": "resource",
+      "configurePreset": "resource"
+    },
+    {
+      "name": "portable-clang-sanitizers",
+      "configurePreset": "portable-clang-sanitizers"
+    },
+    {
+      "name": "windows-msvc-asan",
+      "configurePreset": "windows-msvc-asan",
+      "configuration": "Release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "portable-gcc",
+      "configurePreset": "portable-gcc",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "portable-clang",
+      "configurePreset": "portable-clang",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-msvc",
+      "configurePreset": "windows-msvc",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "resource",
+      "configurePreset": "resource",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "portable-clang-sanitizers",
+      "configurePreset": "portable-clang-sanitizers",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-msvc-asan",
+      "configurePreset": "windows-msvc-asan",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}
